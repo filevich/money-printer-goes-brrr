@@ -53,11 +53,12 @@ const appendStyles = () => {
       height: auto;
       padding: 2vw;
       z-index: 100;
-      background: rgb(0, 0, 0);
+      background: rgba(0, 0, 0, 0.57);
       color: white;
       right: 0;
       position: fixed;
       bottom: 0;
+      font-size: 9px;
     }
 
     #_MPGB-ui > input[type=number] {
@@ -71,6 +72,7 @@ const createMenu = () => {
   var menu = document.createElement('div')
   menu.id = PREFIX + '-ui'
   menu.innerHTML = `
+    <input id="_MPGB-automatic" type="checkbox" checked=""> Automatic <hr />
     status: <span id="_MPGB-status"></span> <hr>
     delta: <input id="_MPGB-delta" type="number" value=""> sec <hr>
     err: <input id="_MPGB-err" type="number" value=""> sec <hr>
@@ -83,8 +85,6 @@ const createMenu = () => {
     <input id="_MPGB-stop" type="button" value="stop">
   `
   document.body.appendChild(menu)
-
-  render()
 
   document.getElementById('_MPGB-start').addEventListener('click', () => {
     setCookie(p('status'), 'PLAYING', null)
@@ -133,12 +133,14 @@ const save = (id) => {
 const createUI = () => {
   appendStyles()
   createMenu()
+  render()
 }
 
+// loads defaults cookies if not set already
 const ini = () => {
 
-  const DEFAULT_DELTA     = 1// 25
-      , DEFAULT_ERR       = 0// 5
+  const DEFAULT_DELTA     = 10
+      , DEFAULT_ERR       = 0 
       , DEFAULT_MAX_ITER  = 5
       , DEFAULT_NEXT_ID   = 'next-video-form'
 
@@ -154,6 +156,7 @@ const ini = () => {
   }
 }
 
+// parse cookies
 const calcTimeOut = () => {
   let delta   = parseInt(getCookie(p('delta')))
     , err     = parseInt(getCookie(p('err')))
@@ -163,18 +166,37 @@ const calcTimeOut = () => {
 
 var timer = 0
 
+const isFinished = () => {
+  return doc.getElementById('video-progress').classList.contains('finished')
+}
+
+const hackerDetected = () => {
+  return /blocker/i.test(doc.body.innerHTML)
+}
+
 const run = () => {
   let status = getCookie(p('status'))
+  const MAX_TRYS = 60
 
   switch (status) {
-    case 'PLAYING':      
+    case 'PLAYING':
       
+    setTimeout(() => {
+
       timer = setInterval(() => {
         if (isFinished()) {
           clearInterval(timer)
           next()
         }
-      }, 1000)
+
+        console.log('checkiing', tryCount, MAX_TRYS, hackerDetected())
+        if (++tryCount == MAX_TRYS || hackerDetected()) {
+          window.location.reload()
+        }
+
+      }, 500)
+
+    }, 20 * 1000);      
 
       break;
   
@@ -187,11 +209,12 @@ const run = () => {
   }
 }
 
-const isFinished = () => {
-  document.getElementById('video-progress').classList.contains('finished')
+const isEnd = () => {
+  return window.location.href.includes('captcha')
 }
 
 const next = () => {
+  console.log('nexting')
   const id = getCookie(p('next-id'))
   let form = document.getElementById(id)
     , btn  = form.querySelector('.watch-next-btn')
@@ -211,10 +234,9 @@ const next = () => {
     
   btn.disabled = false
   btn.click()
-
-  window.location.reload()
-
 }
+
+var doc = -1
 
 window.onload = () => {
   const SITE_NAME = 'playnano.online'
@@ -223,13 +245,17 @@ window.onload = () => {
   if(!SITES.some(r => window.location.hostname.includes(r)))
     return;
 
+  doc = document
+
   ini()
+
+  if (isEnd()) setCookie(p('status'), 'STOPPED', null)
+  else {
+    setCookie(p('status'), 'PLAYING', null)
+    const id = getCookie(p('next-id'))
+    location.href = "#" + id
+  }
+
   createUI()
   run()
 }
-
-
-/*
-https://playnano.online/watch-and-learn/nano/JChBTohSHlM
-https://playnano.online/watch-and-learn/nano/captcha
-*/
