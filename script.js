@@ -240,38 +240,38 @@ const next = () => {
 var doc = -1
 
 window.onload = () => {
-
-  let btn = getBtn()
-  if (!btn.disabled)
-    btn.click()
-
-  setTimeout(() => {
-
-    setInterval(() => {
-      console.log('checking hacker')
-      if (hackerDetected())
-        window.location.reload()
-    }, 2 * 1000)
-
-  }, 20 * 1000); 
   
   const SITE_NAME = 'playnano.online'
       , SITES = [ 'localhost', SITE_NAME ]
 
   if(!SITES.some(r => window.location.hostname.includes(r)))
-    return;
+    return;  
+  
+  ini()
+
+  let btn = getBtn()
+  if (!btn.disabled)
+    btn.click()  
+
+  setTimeout(() => {  
+    setInterval(() => {
+      console.log('checking hacker')
+      if (hackerDetected())
+        window.location.reload()
+    }, 2 * 1000)
+  }, 20 * 1000) 
 
   doc = document
 
-  ini()
-
   if (isEnd()) setCookie(p('status'), 'STOPPED', null)
   else {
-    setCookie(p('status'), 'PLAYING', null)
+      setCookie(p('status'), 'PLAYING', null)
     const id = getCookie(p('next-id'))
     location.href = "#" + id
   }
-
+  
   createUI()
+  
   run()
+  
 }
