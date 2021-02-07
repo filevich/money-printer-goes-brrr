@@ -188,9 +188,7 @@ const run = () => {
           clearInterval(timer)
           next()
         }
-
-        console.log('checkiing', tryCount, MAX_TRYS, hackerDetected())
-        if (++tryCount == MAX_TRYS || hackerDetected()) {
+        if (++tryCount == MAX_TRYS) {
           window.location.reload()
         }
 
@@ -213,11 +211,14 @@ const isEnd = () => {
   return window.location.href.includes('captcha')
 }
 
-const next = () => {
-  console.log('nexting')
+const getBtn = () => {
   const id = getCookie(p('next-id'))
   let form = document.getElementById(id)
-    , btn  = form.querySelector('.watch-next-btn')
+  return form.querySelector('.watch-next-btn')
+}
+
+const next = () => {
+  
 
   let current_iter = getCookie(p('current-iter'))
     , max_iter = getCookie(p('max-iter'))
@@ -239,6 +240,21 @@ const next = () => {
 var doc = -1
 
 window.onload = () => {
+
+  let btn = getBtn()
+  if (!btn.disabled)
+    btn.click()
+
+  setTimeout(() => {
+
+    setInterval(() => {
+      console.log('checking hacker')
+      if (hackerDetected())
+        window.location.reload()
+    }, 2 * 1000)
+
+  }, 20 * 1000); 
+  
   const SITE_NAME = 'playnano.online'
       , SITES = [ 'localhost', SITE_NAME ]
 
